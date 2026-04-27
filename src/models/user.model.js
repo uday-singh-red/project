@@ -76,7 +76,7 @@ const userSchema = new Schema  (
        return jwt.sign(
             
             {
-            _id : this.id,
+            _id : this._id,
             _email: this.email,
             _username: this.username,
             _fullname: this.fullname
@@ -94,7 +94,7 @@ const userSchema = new Schema  (
         return jwt.sign(
             
             {
-            _id : this.id,
+            _id : this._id,
             
            },
 
