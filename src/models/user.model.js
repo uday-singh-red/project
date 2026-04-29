@@ -1,6 +1,7 @@
 
 import mongoose, { Schema } from "mongoose";
 import jwt from "jsonwebtoken"
+import bcrypt from "bcrypt"
 
 const userSchema = new Schema  (
     {
@@ -45,7 +46,7 @@ const userSchema = new Schema  (
 
         password:{
             type:String,
-            required:[true,'posword is mendatory']
+           required: [true, 'password is mandatory']
         },
 
         referstoken:{
@@ -61,11 +62,11 @@ const userSchema = new Schema  (
         }
 )
 
-        userSchema.pre("save", async function (next) {
-            if (!this.isModified("password")) return next();
+        userSchema.pre("save", async function () {
+            if (!this.isModified("password")) return;
 
             this.password = await bcrypt.hash(this.password, 10);
-            next();
+            
         });
      
         userSchema.methods.isPasswordCorrect = async function (password) {

@@ -1,14 +1,16 @@
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { asynHandler } from "../utils/asyncHandler.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { uploadOnClodinary } from "../utils/cloudinary.js";
 import { Response } from "../utils/response.js";
 
 const registerUser= asynHandler( async(req, res)=>{
    
-   const {fullname , email, username, password } =req.body;
+   const {fullname , email, username, password } = req.body|| {};
 
-   console.log(req.body)
+  console.log("CONTENT-TYPE:", req.headers["content-type"]);
+console.log("BODY:", req.body);
+console.log("FILES:", req.files);
 
      if ([username,email,fullname,password].some((field)=>field?.trim()===""))
          {
@@ -26,15 +28,17 @@ const registerUser= asynHandler( async(req, res)=>{
         }
         console.log(existingUser)
 
-       const avatarLocalPath= req.files?.avatar[0]?.path;
-       const coverImageLocalPath= req.files?.coverImage[0]?.path;
-
+     const avatarLocalPath = req.files?.avatar?.[0]?.path;
+     const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
+     
        if (!avatarLocalPath) {
         throw new ApiError(400," avatar is mendatory ")
        }
+         console.log("cloudinary se phle")
+       const avatar= await uploadOnClodinary(avatarLocalPath)
+       const coverImage= await uploadOnClodinary(coverImageLocalPath)
 
-       const avatar= await uploadOnCloudinary(avatarLocalPath)
-       const coverImage= await uploadOnCloudinary(coverImageLocalPath)
+        console.log("cloudinary se bad")
 
        if (!avatar) {
          throw new ApiError(400," avatar is not uploaded ")
@@ -42,6 +46,7 @@ const registerUser= asynHandler( async(req, res)=>{
 
      const user = await User.create({
                 fullname,
+                password,
                 username: username.toLowerCase(),
                 email,
                 avatar: avatar.url,
