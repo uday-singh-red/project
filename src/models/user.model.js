@@ -49,7 +49,7 @@ const userSchema = new Schema  (
            required: [true, 'password is mandatory']
         },
 
-        refershtoken:{
+        refreshToken:{
             type:String
         },
 
