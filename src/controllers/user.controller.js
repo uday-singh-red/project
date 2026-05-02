@@ -1,4 +1,4 @@
-import { jwt } from "jsonwebtoken";
+import jwt  from "jsonwebtoken";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { asynHandler } from "../utils/asyncHandler.js";
@@ -7,7 +7,7 @@ import { Response } from "../utils/response.js";
 
 const option={
       httpOnly:true,
-      secure:true
+      secure:false
   }
 
 const generateRefreshAndAccessToken=async(userId)=>{
@@ -51,7 +51,7 @@ console.log("FILES:", req.files);
         }
         console.log(existingUser)
 
-     const coverImageLocalPath = req.files?.avatar?.[0]?.path;
+     const avatarLocalPath = req.files?.avatar?.[0]?.path;
      const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
      
        if (!avatarLocalPath) {
@@ -143,7 +143,7 @@ const { email, username, password}=req.body;
 })
 
  const logOut= asynHandler(async (req,res)=>{
-      User.findByIdAndUpdate(
+     await User.findByIdAndUpdate(
          req.user._id,
          {
             $set: {refreshToken:undefined}
@@ -170,7 +170,7 @@ const { email, username, password}=req.body;
 
   const refreshAccessToken = asynHandler(async(req,res)=>{
 
-   const incomingRefreshToken= await req.cookies.refreshToken||req.body.refreshToken
+   const incomingRefreshToken=  req.cookies.refreshToken||req.body.refreshToken
 
    try {
       if(!incomingRefreshToken){
@@ -216,10 +216,13 @@ const { email, username, password}=req.body;
 
   const changeCurrentPassword= asynHandler(async(req,res)=>{
 
+   console.log(req.body)
+
    const {oldPassword, newPassword}=req.body
+   console.log(req.user)
 
    const user=await User.findById(req.user?._id)
-   const isCorrect=user.isPasswordCorrect(oldPassword)
+   const isCorrect=await user.isPasswordCorrect(oldPassword)
 
    if(!isCorrect){
       throw new ApiError(401,"old password is not correct");
@@ -243,7 +246,7 @@ const { email, username, password}=req.body;
   const updateAccountDetails= asynHandler(async(req,res)=>{
    const{fullname,email}=req.body
 
-   if(!fullname || !email){
+   if(!(fullname || !email)){
       throw new ApiError(401, "all filds are required")
    }
 
@@ -278,7 +281,7 @@ const { email, username, password}=req.body;
   }
 
   const user= await User.findByIdAndUpdate(
-   req.body?._id,
+   req.user?._id,
    {
       $set:{
          avatar:avatar.url
@@ -310,7 +313,7 @@ const { email, username, password}=req.body;
    req.body?._id,
    {
       $set:{
-         avatar:coverImage.url
+         coverImage:coverImage.url
       }
    },
    {new:true}
