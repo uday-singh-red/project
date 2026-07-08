@@ -5,6 +5,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { asynHandler } from "../utils/asyncHandler.js"
 import { uploadOnClodinary } from "../utils/cloudinary.js";
 import { Shop } from "../models/shop.model.js";
+import { User } from "../models/user.model.js";
 
 
 
@@ -185,16 +186,59 @@ const createProduct = asynHandler(async (req, res) => {
 
 });
 
-const getAllProducts =asynHandler(async(req,res)=>{
+const getAllProducts = asynHandler(async (req, res) => {
 
-   const products =await Product.find({})
+   const { shopId } = req.query;
 
-   return res.status(200)
-   .json({
-      success:true,
+   let filter = {};
+
+   // Agar kisi specific shop ke products chahiye
+   if (shopId) {
+
+      filter.shop = shopId;
+
+   }
+
+   // Agar Home page hai
+   else {
+
+      // Admin user nikalo
+      const admin = await User.findOne({
+         role: "admin"
+      });
+
+      if (!admin) {
+         throw new ApiError(
+            404,
+            "Admin not found"
+         );
+      }
+
+      // Admin ki shop nikalo
+      const adminShop = await Shop.findOne({
+         owner: admin._id
+      });
+
+      if (!adminShop) {
+         throw new ApiError(
+            404,
+            "Admin shop not found"
+         );
+      }
+
+      filter.shop = adminShop._id;
+
+   }
+
+   const products = await Product.find(filter);
+
+   return res.status(200).json({
+      success: true,
       products
-   })
-})
+   });
+
+});
+
 
 const getSingleProduct =asynHandler(async(req,res)=>{
 

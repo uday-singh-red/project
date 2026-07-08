@@ -183,7 +183,8 @@ const shops = await Shop.find({
 
 const getSingleShop = asynHandler(async (req, res) => {
 
-   const { id } = req.params;
+   
+const { id } = req.params;
 
 const shop = await Shop.findOne({
    _id: req.params.id,
@@ -198,6 +199,7 @@ const shop = await Shop.findOne({
          "Shop not found"
       );
    }
+
 
    return res.status(200).json({
       success: true,
