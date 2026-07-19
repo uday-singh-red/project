@@ -186,57 +186,43 @@ const createProduct = asynHandler(async (req, res) => {
 
 });
 
-const getAllProducts = asynHandler(async (req, res) => {
+const getAllProducts = asyncHandler(async (req, res) => {
+   // 1. Query se page aur limit nikalein (aur default values set karein)
+   const page = parseInt(req.query.page) || 1;
+   const limit = parseInt(req.query.limit) || 10;
+   
+   // Kitne products skip karne hain uski calculation
+   const skip = (page - 1) * limit;
 
    const { shopId } = req.query;
-
    let filter = {};
 
-   // Agar kisi specific shop ke products chahiye
    if (shopId) {
-
       filter.shop = shopId;
-
-   }
-
-   // Agar Home page hai
-   else {
-
-      // Admin user nikalo
-      const admin = await User.findOne({
-         role: "admin"
-      });
-
+   } else {
+      const admin = await User.findOne({ role: "admin" });
       if (!admin) {
-         throw new ApiError(
-            404,
-            "Admin not found"
-         );
+         throw new ApiError(404, "Admin not found");
       }
 
-      // Admin ki shop nikalo
-      const adminShop = await Shop.findOne({
-         owner: admin._id
-      });
-
+      const adminShop = await Shop.findOne({ owner: admin._id });
       if (!adminShop) {
-         throw new ApiError(
-            404,
-            "Admin shop not found"
-         );
+         throw new ApiError(404, "Admin shop not found");
       }
 
       filter.shop = adminShop._id;
-
    }
 
-   const products = await Product.find(filter);
+   // 2. Database query mein .skip() aur .limit() add karein
+   const products = await Product.find(filter)
+      .skip(skip)
+      .limit(limit);
 
    return res.status(200).json({
       success: true,
+      page, // Frontend ki checking ke liye page bhi bhej rahe hain
       products
    });
-
 });
 
 
